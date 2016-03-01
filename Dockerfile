@@ -3,9 +3,11 @@ MAINTAINER Chad Schmutzer <schmutze@amazon.com>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get -q update && \
-  apt-get -y -q dist-upgrade && \
-  apt-get -y -q install rsyslog python-setuptools python-pip curl
+ENV SUPERVISOR_VERSION=3.2.0
+
+RUN apt-get update && \
+    apt-get install -y -q rsyslog python-setuptools python-pip curl && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -o awslogs-agent-setup.py
 
@@ -16,16 +18,12 @@ RUN sed -i "s/#\$ModLoad imudp/\$ModLoad imudp/" /etc/rsyslog.conf && \
 
 RUN sed -i "s/authpriv.none/authpriv.none,local6.none,local7.none/" /etc/rsyslog.d/50-default.conf
 
-RUN echo "if \$syslogfacility-text == 'local6' and \$programname == 'httpd' then /var/log/httpd-access.log" >> /etc/rsyslog.d/httpd.conf && \
-	echo "if \$syslogfacility-text == 'local6' and \$programname == 'httpd' then ~" >> /etc/rsyslog.d/httpd.conf && \
-	echo "if \$syslogfacility-text == 'local7' and \$programname == 'httpd' then /var/log/httpd-error.log" >> /etc/rsyslog.d/httpd.conf && \
-	echo "if \$syslogfacility-text == 'local7' and \$programname == 'httpd' then ~" >> /etc/rsyslog.d/httpd.conf
-
 COPY awslogs.conf awslogs.conf
-RUN python ./awslogs-agent-setup.py -n -r us-east-1 -c /awslogs.conf
+COPY entrypoint.sh /entrypoint.sh
 
-RUN pip install supervisor
+RUN pip install supervisor==$SUPERVISOR_VERSION
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
 EXPOSE 514/tcp 514/udp
-CMD ["/usr/local/bin/supervisord"]
+ENTRYPOINT ["bash", "/entrypoint.sh"]
+CMD /usr/local/bin/supervisord
