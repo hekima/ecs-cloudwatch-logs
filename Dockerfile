@@ -18,10 +18,11 @@ RUN sed -i "s/#\$ModLoad imudp/\$ModLoad imudp/" /etc/rsyslog.conf && \
 
 RUN sed -i "s/authpriv.none/authpriv.none,local6.none,local7.none/" /etc/rsyslog.d/50-default.conf
 
-COPY awslogs.conf awslogs.conf
+COPY awslogs.conf /awslogs.conf
 COPY entrypoint.sh /entrypoint.sh
 
 RUN pip install supervisor==$SUPERVISOR_VERSION
+RUN pip install requests[security]
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
 EXPOSE 514/tcp 514/udp
