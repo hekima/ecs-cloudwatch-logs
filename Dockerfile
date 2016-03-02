@@ -10,6 +10,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -o awslogs-agent-setup.py
+RUN sed -i "s/self.setup_agent_nanny()/#self.setup_agent_nanny()/" awslogs-agent-setup.py && \
+    sed -i "s/subprocess.call(\['service', 'awslogs', 'restart'\]/subprocess.call(['service', 'awslogs', 'stop']/" awslogs-agent-setup.py
 
 RUN sed -i "s/#\$ModLoad imudp/\$ModLoad imudp/" /etc/rsyslog.conf && \
   sed -i "s/#\$UDPServerRun 514/\$UDPServerRun 514/" /etc/rsyslog.conf && \

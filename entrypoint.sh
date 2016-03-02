@@ -11,5 +11,5 @@ for i in "${ADDR[@]}"; do
     echo "if \$syslogfacility-text == 'local7' and \$programname == '$i' then ~" >> /etc/rsyslog.d/${i}.conf
 done
 
-python ./awslogs-agent-setup.py -n -r us-east-1 -c /awslogs.conf
+python ./awslogs-agent-setup.py -n -r us-east-1 -c /awslogs.conf 
 exec "$@"
